@@ -1,0 +1,51 @@
+export EMAIL=""
+export KEY=""
+export ID=""
+
+
+
+============TEMPLATE FOR LOOP
+for domain in $(cat domains.txt); do \
+  curl -X POST -H "X-Auth-Key: $KEY" -H "X-Auth-Email: $EMAIL" \
+  -H "Content-Type: application/json" \
+  "https://api.cloudflare.com/client/v4/zones" \
+  --data '{"account": {"id": "$ID"}, "name":"'$domain'","jump_start":false}'
+	echo -e "\n"; done
+
+VERSION2
+===========TO GET THE ZONE ID OF DOMAINS AND PUT IT ON "ZONEID"
+curl -s -X GET "https://api.Cloudflare.com/client/v4/zones/?per_page=100" -H "X-Auth-Email: $EMAIL" -H "X-Auth-Key: $KEY" -H "Content-Type: application/json"| jq -r '.result[] | "\(.id)"' >  "zoneid.txt"
+
+
+===========TO WRITE DNS
+for zoneid in $(cat zoneid.txt); do \
+EMAIL="$EMAIL"; \
+KEY="$KEY"; \
+ZONE_ID="$zoneid"; \
+TYPE="A"; \
+NAME="@"; \
+CONTENT="149.28.252.244"; \
+PROXIED="true"; \
+TTL="1"; \
+curl -X POST "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/" \
+    -H "X-Auth-Email: $EMAIL" \
+    -H "X-Auth-Key: $KEY" \
+    -H "Content-Type: application/json" \
+    --data '{"type":"'"$TYPE"'","name":"'"$NAME"'","content":"'"$CONTENT"'","proxied":'"$PROXIED"',"ttl":'"$TTL"'}' \
+    | python -m json.tool ;done
+
+
+============PAGE RULES HTTP TO HTTPS
+for zoneid in $(cat zoneid.txt); do \
+ZONE_ID="$zoneid"; \
+curl -X PATCH "https://api.cloudflare.com/client/v4/zones/"$ZONE_ID"/settings/always_use_https" \
+     -H "X-Auth-Email: $EMAIL" \
+     -H "X-Auth-Key: $KEY" \
+     -H "Content-Type: application/json" \
+     --data '{"value":"on"}' ;done
+
+
+===========
+VERSION 1
+===========TO GET THE ZONE ID OF DOMAINS AND PUT IT ON "ZONEID"
+curl -s -X GET "https://api.Cloudflare.com/client/v4/zones/?per_page=100" -H "X-Auth-Email: joblinggun6@gmail.com" -H "X-Auth-Key: 923f0b88df1c2edf0d4163129110a2503a59a" -H "Content-Type: application/json"| jq -r '.result[] | "\(.id) \(.name)"' >  rawzone.txt | 
