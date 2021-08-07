@@ -16,9 +16,10 @@ case $ans in
         #for loop for loading bulk checks
             for UptimeCheckDom in $(cat uptimechecks.txt); 
             do
+                echo $UptimeCheckDom
                 #HTTPS check
                 curl -X POST -H "Cache-Control: no-cache" -H "Content-Type: application/x-www-form-urlencoded" -d 'api_key='"$api_key"'&format=json&type=1&url='"$UptimeCheckDom"'&friendly_name='"$UptimeCheckDom"'&alert_contacts='"$ContactId"'_5_0'' "https://api.uptimerobot.com/v2/newMonitor"' | jq
-                sleep 2
+                #sleep 2
             done
         ;;
     2) echo "Selected Keyword [Forbidden keyword check]"
