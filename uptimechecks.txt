@@ -1,0 +1,2 @@
+Delete this line and put domain for checks here.
+Make sure domains start with "https://" and proper format is entered
