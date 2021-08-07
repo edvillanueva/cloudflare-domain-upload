@@ -18,8 +18,9 @@ case $ans in
             do
                 echo $UptimeCheckDom
                 #HTTPS check
-                curl -X POST -H "Cache-Control: no-cache" -H "Content-Type: application/x-www-form-urlencoded" -d 'api_key='"$api_key"'&format=json&type=1&url='"$UptimeCheckDom"'&friendly_name='"$UptimeCheckDom"'&alert_contacts='"$ContactId"'_5_0'' "https://api.uptimerobot.com/v2/newMonitor"' | jq
-                #sleep 2
+                curl -X POST -H "Cache-Control: no-cache" -H "Content-Type: application/x-www-form-urlencoded" -d 'api_key='"$api_key"'&format=json&type=1&url='"$UptimeCheckDom"'&friendly_name='"$UptimeCheckDom"'&alert_contacts='"$ContactId"'_5_0' "https://api.uptimerobot.com/v2/newMonitor" | jq
+                echo " Slowing down to avoid rate limiter, will resume in 7 seconds"
+                sleep 7
             done
         ;;
     2) echo "Selected Keyword [Forbidden keyword check]"
@@ -28,9 +29,11 @@ case $ans in
                 do
                 #Keyword [Forbidden] check
                 curl -X POST -H "Cache-Control: no-cache" -H "Content-Type: application/x-www-form-urlencoded" -d 'api_key='"$api_key"'&format=json&type=2&url='"$UptimeCheckDom"'&friendly_name='"$UptimeCheckDom"'&keyword_type=1&keyword_value=Forbidden&alert_contacts='"$ContactID"'_5_0' "https://api.uptimerobot.com/v2/newMonitor" | jq
-                sleep 2
+                echo " Slowing down to avoid rate limiter, will resume in 7 seconds"
+                sleep 7
                 done
         ;;
     *) echo "Invalid input - closing script"
 esac
 
+echo "Uptimerobot population complete"
