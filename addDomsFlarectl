@@ -1,0 +1,73 @@
+#!/bin/bash
+
+echo -n "CF_API_EMAIL="
+read CF_API_EMAIL
+echo -n "CF_API_KEY="
+read CF_API_KEY
+
+export CF_API_EMAIL
+export CF_API_KEY
+
+add_domain(){
+echo "" > error.txt
+
+for domain in $(cat domains.txt); 
+	do 
+		echo -n $(date);
+		echo -n "  Working on: ";
+		echo -n $domain;
+		echo -n "  ";
+		flarectl zone create --zone=$domain --jumpstart=false > >(tee -a stdout.log) 2> >(tee -a error.txt >&2);
+		echo "";
+		if [[ -n $(tail -n1 error.txt | grep "request failed") ]]; then
+			echo $domain >> error.txt;
+		fi;
+		if [[ -n $(tail -n1 error.txt | grep "1 hour") ]]; then
+			echo $domain >> error.txt;
+		fi;
+		if [[ -n $(tail -n1 error.txt | grep "exist") ]]; then
+			sed -i '$d' error.txt;
+		fi;
+		sleep 30;
+	done
+
+cat error.txt | grep -o [a-z]*[1-5].gq > domains.txt
+}
+
+get_zone()
+{
+	curl -s -X GET "https://api.Cloudflare.com/client/v4/zones/?per_page=101" -H "X-Auth-Email: $CF_API_EMAIL" -H "X-Auth-Key: $CF_API_KEY" -H "Content-Type: application/json"| jq -r '.result[] | "\(.id)"' >  "zoneid.txt"
+
+	echo -e "\nZone IDS generated"
+	sleep 1
+}
+
+set_https()
+{
+	ctr=1;
+	for zoneid in $(cat zoneid.txt); do \
+		ZONE_ID="$zoneid"; \
+		echo -e "$ctr "; \
+		ctr=$(($ctr+1)); \
+		curl -X PATCH "https://api.cloudflare.com/client/v4/zones/"$ZONE_ID"/settings/always_use_https" \
+		     -H "X-Auth-Email: $CF_API_EMAIL" \
+		          -H "X-Auth-Key: $CF_API_KEY" \
+			       -H "Content-Type: application/json" \
+			            --data '{"value":"on"}'
+	echo -e "\n" ;done
+
+	echo -e "\nDomains registered - CHECK"
+	echo "HTTPS is enabled - CHECK"
+}
+
+
+echo "" > error.txt
+while [[ -n $(grep -o [1-5] domains.txt) || 
+	-n $(grep -o "1 hour" error.txt) || 
+	-n $(grep -o "request failed" error.txt) ]]; do	
+	echo "========================= Starting ==========================="
+	add_domain
+done
+
+get_zone
+set_https
