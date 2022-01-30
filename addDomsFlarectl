@@ -50,8 +50,8 @@ set_https()
 		echo -e "$ctr "; \
 		ctr=$(($ctr+1)); \
 		curl -X PATCH "https://api.cloudflare.com/client/v4/zones/"$ZONE_ID"/settings/always_use_https" \
-		     -H "X-Auth-Email: $EMAIL" \
-		          -H "X-Auth-Key: $KEY" \
+		     -H "X-Auth-Email: $CF_API_EMAIL" \
+		          -H "X-Auth-Key: $CF_API_KEY" \
 			       -H "Content-Type: application/json" \
 			            --data '{"value":"on"}'
 	echo -e "\n" ;done
