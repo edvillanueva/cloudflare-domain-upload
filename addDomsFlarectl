@@ -44,20 +44,26 @@ get_zone()
 
 set_https()
 {
+	echo "" > stdout.log
 	ctr=1;
-	for zoneid in $(cat zoneid.txt); do \
-		ZONE_ID="$zoneid"; \
-		echo -e "$ctr "; \
-		ctr=$(($ctr+1)); \
-		curl -X PATCH "https://api.cloudflare.com/client/v4/zones/"$ZONE_ID"/settings/always_use_https" \
+	for zoneid in $(cat zoneid.txt); do 
+		ZONE_ID="$zoneid"; 
+		echo -e "$ctr "; 
+		ctr=$(($ctr+1)); 
+		curl -s -X PATCH "https://api.cloudflare.com/client/v4/zones/"$ZONE_ID"/settings/always_use_https" \
 		     -H "X-Auth-Email: $CF_API_EMAIL" \
-		          -H "X-Auth-Key: $CF_API_KEY" \
-			       -H "Content-Type: application/json" \
-			            --data '{"value":"on"}'
+		     -H "X-Auth-Key: $CF_API_KEY" \
+	 	     -H "Content-Type: application/json" \
+		     --data '{"value":"on"}'  > >(tee -a stdout.log) 2> >(tee -a error.txt >&2); 
 	echo -e "\n" ;done
 
 	echo -e "\nDomains registered - CHECK"
-	echo "HTTPS is enabled - CHECK"
+	if [[ -n $(grep -o '"success":false' stdout.log) ]]; then
+		echo "HTTPS is enabled - ============== FAIL =============="
+		set_https
+	else
+		echo "HTTPS is enabled - CHECK"
+	fi
 }
 
 
